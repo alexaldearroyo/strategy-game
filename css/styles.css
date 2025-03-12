@@ -1,0 +1,188 @@
+/* Fuentes japonesas */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+
+/* Variables */
+:root {
+  --neon-red: #ff1744;
+  --neon-blue: #00b0ff;
+  --neon-purple: #d500f9;
+  --dark-bg: #1a1a1a;
+  --cell-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Estilos generales */
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--dark-bg);
+  color: #ffffff;
+  background-image: linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.8) 25%,
+      transparent 25%
+    ),
+    linear-gradient(-45deg, rgba(0, 0, 0, 0.8) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(0, 0, 0, 0.8) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(0, 0, 0, 0.8) 75%);
+  background-size: 20px 20px;
+  background-position:
+    0 0,
+    0 10px,
+    10px -10px,
+    -10px 0px;
+}
+
+/* Contenedor del juego */
+.game-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(255, 23, 68, 0.2);
+}
+
+/* Título */
+h1 {
+  text-align: center;
+  color: var(--neon-red);
+  text-shadow: 0 0 10px rgba(255, 23, 68, 0.5);
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Tablero */
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  margin-bottom: 2rem;
+}
+
+/* Celdas */
+.cell {
+  aspect-ratio: 1;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--cell-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.5rem;
+}
+
+.cell:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+/* Elementos */
+.element-fire {
+  border-color: var(--neon-red);
+}
+.element-water {
+  border-color: var(--neon-blue);
+}
+.element-air {
+  border-color: #64ffda;
+}
+.element-earth {
+  border-color: #76ff03;
+}
+.element-ether {
+  border-color: var(--neon-purple);
+}
+
+/* Paneles de jugador */
+.player-panel {
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  border: 1px solid var(--cell-border);
+}
+
+.player-panel h2 {
+  color: var(--neon-blue);
+  margin-top: 0;
+}
+
+/* Recursos */
+.resources {
+  display: flex;
+  gap: 1.5rem;
+  margin: 1rem 0;
+}
+
+.resource {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Botones */
+button {
+  background: var(--neon-red);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: #ff4081;
+  box-shadow: 0 0 15px rgba(255, 23, 68, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Animaciones */
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  }
+}
+
+.selected {
+  animation: glow 1.5s infinite;
+}
+
+/* Iconos y símbolos */
+.cell span {
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .game-container {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  .game-board {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .cell {
+    font-size: 1.2rem;
+  }
+}
