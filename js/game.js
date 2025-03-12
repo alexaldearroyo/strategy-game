@@ -320,7 +320,13 @@ function updateCellDOM(index) {
       domCell.innerHTML = cell.isColony ? '🏰' : '';
     }
   } else {
-    domCell.innerHTML = getElementSymbol(cell.element);
+    // Mostrar el valor de energía en lugar del símbolo del elemento
+    const energyValue = getElementEnergyValue(cell.element);
+
+    // Añadir clase según valor de energía
+    domCell.classList.add(`energy-${energyValue}`);
+
+    domCell.innerHTML = `<span class="energy-value">+${energyValue}⚡</span>`;
   }
 }
 
@@ -557,6 +563,18 @@ function checkVictory() {
 // Reiniciar juego
 function resetGame() {
   initGame();
+}
+
+// Obtener valor de energía para un elemento
+function getElementEnergyValue(element) {
+  const values = {
+    [ELEMENTS.FIRE]: 2, // 1 base + 1 adicional
+    [ELEMENTS.WATER]: 2, // 1 base + 1 adicional
+    [ELEMENTS.ETHER]: 2, // 1 base + 1 adicional
+    [ELEMENTS.EARTH]: 1, // 1 base
+    [ELEMENTS.AIR]: 1,   // 1 base
+  };
+  return values[element] || 1;
 }
 
 // Obtener símbolo para un elemento

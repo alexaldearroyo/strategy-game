@@ -10,6 +10,7 @@
         --primary-color: #ff4757;
         --secondary-color: #2f3542;
         --accent-color: #70a1ff;
+        --neutral-color: #a4b0be;
         --background-color: #1e272e;
         --text-color: #f1f2f6;
       }
@@ -40,8 +41,8 @@
 
       .cell {
         aspect-ratio: 1;
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid var(--accent-color);
+        background: rgba(164, 176, 190, 0.1);
+        border: 2px solid var(--neutral-color);
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -116,6 +117,26 @@
         color: #a4b0be;
       }
 
+      /* Estilos para las casillas según valor de energía */
+      .energy-1 {
+        background: rgba(92, 64, 51, 0.3) !important; /* Marrón oscuro */
+      }
+
+      .energy-2 {
+        background: rgba(255, 248, 220, 0.3) !important; /* Crema claro */
+      }
+
+      /* Ajustes de tipografía para los valores de energía */
+      .energy-1 .energy-value {
+        color: #ffd54f; /* Amarillo más brillante para el fondo oscuro */
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.7);
+      }
+
+      .energy-2 .energy-value {
+        color: #ff9800; /* Naranja para el fondo claro */
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+      }
+
       /* Estilos para las unidades y colonias */
       .player1 {
         background: rgba(255, 71, 87, 0.2);
@@ -133,6 +154,13 @@
         padding: 2px 6px;
         border-radius: 10px;
         margin-top: 5px;
+      }
+
+      .energy-value {
+        font-size: 1.1em;
+        color: #ffeb3b;
+        font-weight: bold;
+        text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
       }
 
       .valid-move {
@@ -386,32 +414,32 @@
             <tr>
               <th>Elemento</th>
               <th>Tipo</th>
-              <th>Recurso</th>
+              <th>Energía generada</th>
             </tr>
-            <tr>
+            <tr style="background: rgba(255, 248, 220, 0.1);">
               <td>🔥 Fuego</td>
               <td>Industria</td>
-              <td>Energía</td>
+              <td><span style="color:#ff9800; font-weight:bold;">+2⚡</span></td>
             </tr>
-            <tr>
+            <tr style="background: rgba(92, 64, 51, 0.1);">
               <td>🌍 Tierra</td>
               <td>Agricultura</td>
-              <td>Dinero</td>
+              <td><span style="color:#ffd54f; font-weight:bold;">+1⚡</span></td>
             </tr>
-            <tr>
+            <tr style="background: rgba(92, 64, 51, 0.1);">
               <td>💨 Aire</td>
               <td>Informática</td>
-              <td>Dinero</td>
+              <td><span style="color:#ffd54f; font-weight:bold;">+1⚡</span></td>
             </tr>
-            <tr>
+            <tr style="background: rgba(255, 248, 220, 0.1);">
               <td>💧 Agua</td>
               <td>Pesca</td>
-              <td>Energía</td>
+              <td><span style="color:#ff9800; font-weight:bold;">+2⚡</span></td>
             </tr>
-            <tr>
+            <tr style="background: rgba(255, 248, 220, 0.1);">
               <td>✨ Éter</td>
               <td>Negocio</td>
-              <td>Especial</td>
+              <td><span style="color:#ff9800; font-weight:bold;">+2⚡</span></td>
             </tr>
           </table>
         </div>
@@ -422,12 +450,9 @@
             <li>Cada jugador comienza con 3 puntos de energía</li>
             <li>Para conquistar una cofradía se necesitan 4 soldados</li>
             <li>Los soldados parten desde las cofradías</li>
-            <li>En cada turno puedes realizar un combate o un movimiento</li>
-            <li>Cada turno genera 3 puntos de energía base</li>
-            <li>
-              Las cartas con elemento se comportan mejor en casillas de su mismo
-              elemento
-            </li>
+            <li>En cada turno puedes realizar una acción: crear un soldado o mover unidades</li>
+            <li>El turno termina automáticamente después de realizar una acción</li>
+            <li>Las cartas con elemento se comportan mejor en casillas de su mismo elemento</li>
           </ul>
         </div>
 
@@ -488,9 +513,6 @@
               <span id="player1Soldiers">0</span>
             </div>
           </div>
-          <div class="controls">
-            <button onclick="endTurn(1)">Terminar Turno</button>
-          </div>
         </div>
 
         <div class="player-panel">
@@ -504,9 +526,6 @@
               <span>Soldados:</span>
               <span id="player2Soldiers">0</span>
             </div>
-          </div>
-          <div class="controls">
-            <button onclick="endTurn(2)">Terminar Turno</button>
           </div>
         </div>
       </div>
