@@ -216,12 +216,22 @@ function createSoldier() {
     return;
   }
 
+  // Mostrar interfaz de selección de colonia si hay más de una
+  if (player.colonies.length > 1) {
+    showColonySelectionInterface();
+    return;
+  }
+
+  // Si solo hay una colonia, crear soldado allí automáticamente
+  createSoldierInColony(player.colonies[0]);
+}
+
+// Función para crear soldado en una colonia específica
+function createSoldierInColony(colonyIndex) {
+  const player = gameState.players[gameState.currentPlayer];
+
   // Restar energía
   player.energy -= SOLDIER_COST;
-
-  // Encontrar la primera colonia del jugador y crear el soldado allí
-  const colonyIndex = player.colonies[0];
-  console.log('Colonia seleccionada:', colonyIndex);
 
   // Incrementar soldados en la colonia
   gameState.board[colonyIndex].soldiers += 1;
@@ -242,11 +252,97 @@ function createSoldier() {
   // Deshabilitar la creación de más soldados este turno
   gameState.actions.canCreateSoldier = false;
 
+  // Ocultar la interfaz de selección si estaba abierta
+  const selectionInterface = document.getElementById('colonySelectionInterface');
+  if (selectionInterface) {
+    selectionInterface.remove();
+  }
+
   // Terminar el turno automáticamente después de un breve retraso
   setTimeout(() => {
     console.log('Terminando turno después de crear soldado');
     endTurn(gameState.currentPlayer);
   }, 100);
+}
+
+// Mostrar interfaz para seleccionar colonia
+function showColonySelectionInterface() {
+  // Eliminar interfaz anterior si existe
+  const oldInterface = document.getElementById('colonySelectionInterface');
+  if (oldInterface) {
+    oldInterface.remove();
+  }
+
+  const player = gameState.players[gameState.currentPlayer];
+
+  // Crear contenedor para la interfaz
+  const selectionInterface = document.createElement('div');
+  selectionInterface.id = 'colonySelectionInterface';
+  selectionInterface.className = 'colony-selection-interface';
+
+  // Título
+  const title = document.createElement('h3');
+  title.textContent = 'Selecciona una cofradía para crear tu soldado:';
+  selectionInterface.appendChild(title);
+
+  // Contenedor para las opciones
+  const optionsContainer = document.createElement('div');
+  optionsContainer.className = 'colony-options';
+
+  // Crear botones para cada colonia
+  player.colonies.forEach(colonyIndex => {
+    const colony = gameState.board[colonyIndex];
+    const colonyBtn = document.createElement('button');
+    colonyBtn.className = 'colony-option';
+    colonyBtn.innerHTML = `
+      <span class="colony-index">Cofradía ${colonyIndex}</span>
+      <span class="colony-element">${getElementSymbol(colony.element)}</span>
+      <span class="colony-soldiers">🛡️ ${colony.soldiers}</span>
+    `;
+
+    // Resaltar la colonia cuando se hace hover sobre el botón
+    colonyBtn.addEventListener('mouseover', () => {
+      highlightColony(colonyIndex);
+    });
+
+    colonyBtn.addEventListener('mouseout', () => {
+      clearHighlights();
+    });
+
+    // Seleccionar la colonia al hacer clic
+    colonyBtn.addEventListener('click', () => {
+      clearHighlights();
+      createSoldierInColony(colonyIndex);
+    });
+
+    optionsContainer.appendChild(colonyBtn);
+  });
+
+  selectionInterface.appendChild(optionsContainer);
+
+  // Botón para cancelar
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancelar';
+  cancelBtn.className = 'cancel-button';
+  cancelBtn.addEventListener('click', () => {
+    selectionInterface.remove();
+    clearHighlights();
+  });
+
+  selectionInterface.appendChild(cancelBtn);
+
+  // Añadir la interfaz al contenedor del juego
+  document.querySelector('.game-container').appendChild(selectionInterface);
+}
+
+// Función para resaltar una colonia
+function highlightColony(colonyIndex) {
+  clearHighlights();
+  const cell = document.querySelector(`[data-index="${colonyIndex}"]`);
+  if (cell) {
+    cell.style.border = '3px solid green';
+    cell.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.7)';
+  }
 }
 
 // Función para actualizar directamente el DOM de una celda
@@ -599,7 +695,21 @@ function aiTurn() {
     // Intentar crear un soldado primero si es posible
     if (canCreateSoldier()) {
       console.log('IA creando soldado');
-      createSoldier();
+      // Para la IA, seleccionar la colonia con más soldados para reforzarla
+      const player = gameState.players[2];
+      let bestColony = player.colonies[0];
+      let maxSoldiers = gameState.board[bestColony].soldiers;
+
+      player.colonies.forEach(colonyIndex => {
+        const colony = gameState.board[colonyIndex];
+        if (colony.soldiers > maxSoldiers) {
+          maxSoldiers = colony.soldiers;
+          bestColony = colonyIndex;
+        }
+      });
+
+      console.log(`IA selecciona colonia ${bestColony} para crear soldado`);
+      createSoldierInColony(bestColony);
       return; // La IA solo hace una acción por turno
     }
 

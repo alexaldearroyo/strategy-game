@@ -215,3 +215,89 @@ button:hover {
     transform: translateY(-20px);
   }
 }
+
+/* Estilos para la interfaz de selección de colonia */
+.colony-selection-interface {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid var(--neon-purple);
+  border-radius: 15px;
+  padding: 20px;
+  z-index: 100;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 0 25px rgba(213, 0, 249, 0.5);
+  animation: fadeIn 0.3s ease;
+}
+
+.colony-selection-interface h3 {
+  color: var(--neon-blue);
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.colony-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.colony-option {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--neon-blue);
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+  transition: all 0.3s ease;
+}
+
+.colony-option:hover {
+  transform: scale(1.05);
+  background: rgba(0, 176, 255, 0.2);
+  box-shadow: 0 0 15px rgba(0, 176, 255, 0.5);
+}
+
+.colony-index {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.colony-element {
+  font-size: 24px;
+  margin: 5px 0;
+}
+
+.colony-soldiers {
+  font-size: 16px;
+}
+
+.cancel-button {
+  background: rgba(100, 100, 100, 0.5);
+  display: block;
+  margin: 0 auto;
+}
+
+.cancel-button:hover {
+  background: rgba(150, 150, 150, 0.7);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
