@@ -1,5 +1,5 @@
 // Constantes del juego
-const BOARD_SIZE = 35;
+const BOARD_SIZE = 25;
 const ELEMENTS = {
   FIRE: 'fire',
   EARTH: 'earth',
@@ -124,12 +124,12 @@ function placeInitialColonies() {
   console.log('Colocando colonias iniciales...');
 
   // Colonia del jugador 1 (arriba)
-  const player1Colony = Math.floor(Math.random() * 7);
+  const player1Colony = Math.floor(Math.random() * 5);
   placeColony(player1Colony, 1);
   console.log('Colonia Jugador 1 colocada en: ' + player1Colony);
 
   // Colonia del jugador 2 (abajo)
-  const player2Colony = BOARD_SIZE - 7 + Math.floor(Math.random() * 7);
+  const player2Colony = BOARD_SIZE - 5 + Math.floor(Math.random() * 5);
   placeColony(player2Colony, 2);
   console.log('Colonia Jugador 2 colocada en: ' + player2Colony);
 
@@ -391,12 +391,12 @@ function handleCellClick(index) {
 
 // Resaltar movimientos válidos
 function highlightValidMoves(index) {
-  const row = Math.floor(index / 7);
-  const col = index % 7;
+  const row = Math.floor(index / 5);
+  const col = index % 5;
 
   for (let i = 0; i < BOARD_SIZE; i++) {
-    const targetRow = Math.floor(i / 7);
-    const targetCol = i % 7;
+    const targetRow = Math.floor(i / 5);
+    const targetCol = i % 5;
 
     if (Math.abs(targetRow - row) <= 1 && Math.abs(targetCol - col) <= 1) {
       const cell = document.querySelector(`[data-index="${i}"]`);
@@ -419,10 +419,10 @@ function clearHighlights() {
 function isValidMove(from, to) {
   if (gameState.actions.movesLeft <= 0) return false;
 
-  const fromRow = Math.floor(from / 7);
-  const fromCol = from % 7;
-  const toRow = Math.floor(to / 7);
-  const toCol = to % 7;
+  const fromRow = Math.floor(from / 5);
+  const fromCol = from % 5;
+  const toRow = Math.floor(to / 5);
+  const toCol = to % 5;
 
   // Verificar que el movimiento sea a una casilla adyacente
   return (
@@ -703,31 +703,243 @@ function aiTurn() {
   console.log('Ejecutando turno de la IA');
 
   setTimeout(() => {
-    // Intentar crear un soldado primero si es posible
-    if (canCreateSoldier()) {
-      console.log('IA creando soldado');
-      // Para la IA, seleccionar la colonia con más soldados para reforzarla
-      const player = gameState.players[2];
-      let bestColony = player.colonies[0];
-      let maxSoldiers = gameState.board[bestColony].soldiers;
+    const player2 = gameState.players[2];
+    const player1 = gameState.players[1];
 
-      player.colonies.forEach(colonyIndex => {
+    // Análisis estratégico avanzado del estado del juego
+    const totalPlayer1Soldiers = player1.soldiers;
+    const totalPlayer2Soldiers = player2.soldiers;
+    const soldierDifference = totalPlayer2Soldiers - totalPlayer1Soldiers;
+
+    // Comparativa de colonias
+    const player1Colonies = player1.colonies.length;
+    const player2Colonies = player2.colonies.length;
+
+    // Análisis de amenazas
+    let immediateThreats = 0;
+    player2.colonies.forEach(colonyIndex => {
+      player1.colonies.forEach(enemyColonyIndex => {
+        if (calculateDistance(colonyIndex, enemyColonyIndex) <= 2) {
+          immediateThreats++;
+        }
+      });
+    });
+
+    // Evaluación de terreno controlado
+    let valuableTerritoryCount = 0;
+    let highValueTerrainNearby = 0;
+    gameState.board.forEach((cell, index) => {
+      if (cell.owner === 2) {
+        // Valorar terrenos con alto valor energético
+        if (getElementEnergyValue(cell.element) >= 2) {
+          valuableTerritoryCount++;
+        }
+      } else if (cell.owner === null) {
+        // Detectar terrenos valiosos no conquistados cerca de las colonias
+        player2.colonies.forEach(colonyIndex => {
+          if (calculateDistance(colonyIndex, index) <= 2 && getElementEnergyValue(cell.element) >= 2) {
+            highValueTerrainNearby++;
+          }
+        });
+      }
+    });
+
+    // Determinar fase del juego
+    let gamePhase = "early";
+    if (player1Colonies + player2Colonies >= 6) {
+      gamePhase = "mid";
+    }
+    if (player1Colonies + player2Colonies >= 10 || player1.soldiers + player2.soldiers >= 20) {
+      gamePhase = "late";
+    }
+
+    console.log(`IA - Fase del juego: ${gamePhase}`);
+    console.log(`IA - Amenazas inmediatas: ${immediateThreats}`);
+    console.log(`IA - Ventaja en soldados: ${soldierDifference}`);
+    console.log(`IA - Colonias: ${player2Colonies} vs ${player1Colonies} del jugador`);
+
+    // Determinar si estamos en desventaja crítica
+    const isCriticalDisadvantage = soldierDifference < -3 && player2Colonies <= player1Colonies;
+
+    // Determinar si hay oportunidad de expansión segura
+    const isExpansionSafe = highValueTerrainNearby > 0 && immediateThreats === 0;
+
+    // Determinar si hay exceso de energía acumulada
+    const hasExcessEnergy = player2.energy >= SOLDIER_COST * 2;
+
+    // Decisiones inteligentes según la fase del juego
+    let shouldCreateSoldier = false;
+
+    // Lógica de creación de soldados según fase del juego
+    if (gamePhase === "early") {
+      // Fase temprana: priorizar expansión y economía
+      shouldCreateSoldier = player2.energy >= SOLDIER_COST && (
+        player2.soldiers < 5 ||
+        hasExcessEnergy ||
+        isExpansionSafe
+      );
+    } else if (gamePhase === "mid") {
+      // Fase media: balancear expansión y ataque
+      shouldCreateSoldier = player2.energy >= SOLDIER_COST && (
+        isCriticalDisadvantage ||
+        (player2.soldiers < player1.soldiers + 2) ||
+        hasExcessEnergy
+      );
+    } else {
+      // Fase tardía: priorizar ataque y defender colonias
+      shouldCreateSoldier = player2.energy >= SOLDIER_COST && (
+        isCriticalDisadvantage ||
+        immediateThreats > 0 ||
+        player2.soldiers < 8
+      );
+    }
+
+    console.log(`IA decide ${shouldCreateSoldier ? "crear soldado" : "mover unidades"} en fase ${gamePhase}`);
+
+    // Verificar oportunidades de ataque de alto valor
+    let criticalAttack = false;
+    let bestAttackFrom = -1;
+    let bestAttackTo = -1;
+    let bestAttackScore = 0;
+
+    // Buscar oportunidades de ataque críticas (como capturar última colonia enemiga)
+    if (player1Colonies === 1 && !shouldCreateSoldier) {
+      player2.colonies.forEach(colonyIndex => {
         const colony = gameState.board[colonyIndex];
-        if (colony.soldiers > maxSoldiers) {
-          maxSoldiers = colony.soldiers;
+        // Si tenemos suficientes soldados para un ataque decisivo
+        if (colony.soldiers >= 4) {
+          player1.colonies.forEach(enemyColonyIndex => {
+            const enemyColony = gameState.board[enemyColonyIndex];
+            const distance = calculateDistance(colonyIndex, enemyColonyIndex);
+            // Si está a distancia de ataque y podemos ganar
+            if (distance <= 1 && colony.soldiers > enemyColony.soldiers) {
+              criticalAttack = true;
+              bestAttackFrom = colonyIndex;
+              bestAttackTo = enemyColonyIndex;
+              bestAttackScore = 1000; // Prioridad máxima
+              console.log(`IA: ¡Detectada oportunidad de victoria! Atacando última colonia enemiga`);
+            }
+          });
+        }
+      });
+    }
+
+    // Decidir acción basada en la estrategia
+    if (canCreateSoldier() && shouldCreateSoldier && !criticalAttack) {
+      // Estrategia avanzada para selección de colonias
+      let bestColony = player2.colonies[0];
+      let bestScore = -Infinity;
+
+      player2.colonies.forEach(colonyIndex => {
+        const colony = gameState.board[colonyIndex];
+        let colonyScore = 0;
+
+        // 1. Valor base por soldados actuales
+        colonyScore += colony.soldiers * 2;
+
+        // 2. Valor por elemento de la colonia
+        const energyValue = getElementEnergyValue(colony.element);
+        colonyScore += energyValue * 15;
+
+        // 3. Factor estratégico según fase del juego
+        if (gamePhase === "early") {
+          // Priorizar colonias alejadas del enemigo para expansión
+          let minDistanceToEnemy = Infinity;
+          player1.colonies.forEach(enemyColonyIndex => {
+            const distance = calculateDistance(colonyIndex, enemyColonyIndex);
+            minDistanceToEnemy = Math.min(minDistanceToEnemy, distance);
+          });
+          // Preferir colonias que no estén demasiado cerca del enemigo al principio
+          colonyScore += Math.min(minDistanceToEnemy * 10, 60);
+        } else if (gamePhase === "mid") {
+          // En fase media, valorar colonias en posición para expansión o ataque
+          // Buscar territorios neutrales valiosos cercanos
+          let nearbyValuableTerritories = 0;
+          gameState.board.forEach((cell, index) => {
+            if (cell.owner === null && calculateDistance(colonyIndex, index) <= 1) {
+              nearbyValuableTerritories += getElementEnergyValue(cell.element);
+            }
+          });
+          colonyScore += nearbyValuableTerritories * 20;
+        } else {
+          // En fase tardía, priorizar colonias cercanas al enemigo para ataque
+          let offensiveValue = 0;
+          player1.colonies.forEach(enemyColonyIndex => {
+            const distance = calculateDistance(colonyIndex, enemyColonyIndex);
+            if (distance <= 2) {
+              offensiveValue += (3 - distance) * 30;
+            }
+          });
+          colonyScore += offensiveValue;
+        }
+
+        // 4. Defensa de colonias bajo amenaza
+        let underThreat = false;
+        player1.colonies.forEach(enemyColonyIndex => {
+          const enemyColony = gameState.board[enemyColonyIndex];
+          const distance = calculateDistance(colonyIndex, enemyColonyIndex);
+          if (distance <= 1 && enemyColony.soldiers >= colony.soldiers) {
+            underThreat = true;
+            // Amenaza directa: prioridad alta
+            colonyScore += 100;
+          } else if (distance <= 2 && enemyColony.soldiers > colony.soldiers) {
+            // Amenaza cercana: prioridad media
+            colonyScore += 50;
+          }
+        });
+
+        // 5. Factores adicionales
+        // Evitar crear demasiados soldados en una sola colonia (distribución)
+        if (colony.soldiers > 4 && !underThreat) {
+          colonyScore -= (colony.soldiers - 4) * 15;
+        }
+
+        // Bonus para colonias en terrenos valiosos
+        if (colony.element === ELEMENTS.FIRE || colony.element === ELEMENTS.WATER) {
+          colonyScore += 25;
+        }
+
+        // Bonus para colonias aisladas que necesitan defensa
+        let isIsolated = true;
+        player2.colonies.forEach(otherColonyIndex => {
+          if (otherColonyIndex !== colonyIndex && calculateDistance(colonyIndex, otherColonyIndex) <= 2) {
+            isIsolated = false;
+          }
+        });
+        if (isIsolated) {
+          colonyScore += 40;
+        }
+
+        console.log(`Colonia ${colonyIndex}: Puntuación ${colonyScore} (${colony.soldiers} soldados, elemento ${colony.element})`);
+
+        // Actualizar la mejor colonia
+        if (colonyScore > bestScore) {
+          bestScore = colonyScore;
           bestColony = colonyIndex;
         }
       });
 
-      console.log(`IA selecciona colonia ${bestColony} para crear soldado`);
+      console.log(`IA selecciona colonia ${bestColony} para crear soldado (puntuación: ${bestScore})`);
       createSoldierInColony(bestColony);
-      return; // La IA solo hace una acción por turno
+      return;
     }
 
-    // Luego intentar mover
+    // Si hay un ataque crítico identificado, ejecutarlo con prioridad
+    if (criticalAttack) {
+      console.log(`¡IA ejecutando ataque crítico! De ${bestAttackFrom} a ${bestAttackTo}`);
+      gameState.selectedCell = bestAttackFrom;
+      highlightCell(bestAttackFrom);
+      setTimeout(() => {
+        moveUnits(bestAttackFrom, bestAttackTo);
+        setTimeout(() => endTurn(2), 500);
+      }, 500);
+      return;
+    }
+
+    // Si llegamos aquí, calculamos el mejor movimiento normal
     const aiMove = calculateAIMove();
     if (aiMove) {
-      console.log(`IA moviendo de ${aiMove.from} a ${aiMove.to}`);
+      console.log(`IA moviendo de ${aiMove.from} a ${aiMove.to} (puntuación: ${aiMove.score})`);
       executeAIMove(aiMove);
     } else {
       console.log('IA no puede mover, terminando turno');
@@ -753,6 +965,9 @@ function calculateAIMove() {
             from: index,
             to: i,
             score: score,
+            fromSoldiers: cell.soldiers,
+            toOwner: targetCell.owner,
+            toSoldiers: targetCell.soldiers
           });
         }
       }
@@ -764,6 +979,24 @@ function calculateAIMove() {
   // Encontrar el mejor movimiento
   if (possibleMoves.length > 0) {
     possibleMoves.sort((a, b) => b.score - a.score);
+
+    // Mostrar los 3 mejores movimientos considerados
+    console.log("Mejores movimientos considerados:");
+    for (let i = 0; i < Math.min(3, possibleMoves.length); i++) {
+      const move = possibleMoves[i];
+      let typeText = "Desconocido";
+
+      if (move.toOwner === 1) {
+        typeText = "ATAQUE";
+      } else if (move.toOwner === null) {
+        typeText = "CONQUISTA";
+      } else {
+        typeText = "REFUERZO";
+      }
+
+      console.log(`${i+1}. ${typeText}: ${move.from}(${move.fromSoldiers}) -> ${move.to}(${move.toSoldiers}) | Puntuación: ${move.score}`);
+    }
+
     return possibleMoves[0];
   }
 
@@ -775,50 +1008,354 @@ function evaluateMove(from, to) {
   const fromCell = gameState.board[from];
   const toCell = gameState.board[to];
   let score = 0;
+  const player2 = gameState.players[2];
+  const player1 = gameState.players[1];
 
-  // Preferir atacar casillas enemigas
-  if (toCell.owner === 1) {
-    score += 100;
-    // Bonus si podemos ganar el combate
-    if (fromCell.soldiers > toCell.soldiers) {
-      score += 50;
-      // Bonus extra por capturar colonias
-      if (toCell.isColony) {
-        score += 200;
+  // Determinar fase del juego para ajustar estrategias
+  let gamePhase = "early";
+  if (player1.colonies.length + player2.colonies.length >= 6) {
+    gamePhase = "mid";
+  }
+  if (player1.colonies.length + player2.colonies.length >= 10 || player1.soldiers + player2.soldiers >= 20) {
+    gamePhase = "late";
+  }
+
+  // Análisis del estado actual de la IA
+  const isCurrentlyStronger = player2.soldiers > player1.soldiers + 2;
+  const hasMoreColonies = player2.colonies.length > player1.colonies.length;
+  const hasEnoughEnergy = player2.energy >= SOLDIER_COST * 2;
+
+  // Factor de agresividad basado en ventaja actual
+  let aggressivenessFactor = 1.0;
+  if (isCurrentlyStronger && hasMoreColonies) {
+    aggressivenessFactor = 1.5; // Más agresivo cuando va ganando
+  } else if (player2.soldiers < player1.soldiers - 2) {
+    aggressivenessFactor = 0.7; // Más cauto cuando va perdiendo
+  }
+
+  // ANÁLISIS GENERAL DEL MOVIMIENTO
+
+  // Evitar dejar una colonia sin defensa
+  if (gameState.board[from].isColony && fromCell.soldiers === gameState.board[from].soldiers) {
+    score -= 200; // Penalizar fuertemente
+    console.log(`[IA] ⚠️ Evitar dejar colonia ${from} sin defensa: -200 puntos`);
+  }
+
+  // Evitar mover unidades individuales que pueden morir fácilmente
+  if (fromCell.soldiers === 1 && toCell.owner === 1 && toCell.soldiers > 0) {
+    score -= 120;
+    console.log(`[IA] ⚠️ Evitar sacrificar una unidad solitaria: -120 puntos`);
+  }
+
+  // MOVIMIENTOS A TERRITORIO NEUTRAL
+  if (toCell.owner === null) {
+    // Valor base por expansión
+    score += 50;
+
+    // Valor por energía del territorio
+    const energyValue = getElementEnergyValue(toCell.element);
+    score += energyValue * 30;
+    console.log(`[IA] Valor de expansión a territorio neutral (${energyValue}⚡): +${50 + energyValue * 30} puntos`);
+
+    // Bonus para establecer nuevas colonias en terrenos valiosos
+    if (fromCell.soldiers >= COLONY_CAPTURE_THRESHOLD && !toCell.isColony) {
+      // Base para todas las nuevas colonias potenciales
+      score += 100;
+
+      // Bonus por energía generada
+      score += energyValue * 40;
+
+      // Analizar la posición estratégica para la nueva colonia
+
+      // 1. Distancia a colonias enemigas (mejor si está lejos en fase temprana)
+      let minDistanceToEnemyColony = Infinity;
+      player1.colonies.forEach(enemyColonyIndex => {
+        const distance = calculateDistance(to, enemyColonyIndex);
+        minDistanceToEnemyColony = Math.min(minDistanceToEnemyColony, distance);
+      });
+
+      if (gamePhase === "early" || gamePhase === "mid") {
+        // En fase temprana y media, valorar estar lejos del enemigo para expansión segura
+        score += Math.min(minDistanceToEnemyColony * 15, 60);
+        console.log(`[IA] Colonia alejada del enemigo (distancia ${minDistanceToEnemyColony}): +${Math.min(minDistanceToEnemyColony * 15, 60)} puntos`);
+      } else {
+        // En fase tardía, las colonias cercanas al enemigo pueden ser útiles para el ataque
+        if (minDistanceToEnemyColony <= 2 && isCurrentlyStronger) {
+          score += 80;
+          console.log(`[IA] Colonia ofensiva cerca del enemigo: +80 puntos`);
+        }
       }
+
+      // 2. Conexión con colonias existentes (distancia a colonias propias)
+      let minDistanceToOwnColony = Infinity;
+      player2.colonies.forEach(ownColonyIndex => {
+        if (ownColonyIndex !== from) { // Excluir la colonia de origen
+          const distance = calculateDistance(to, ownColonyIndex);
+          minDistanceToOwnColony = Math.min(minDistanceToOwnColony, distance);
+        }
+      });
+
+      // Valorar estar cerca de colonias propias para defensa mutua
+      if (minDistanceToOwnColony <= 3) {
+        score += (4 - minDistanceToOwnColony) * 25;
+        console.log(`[IA] Colonia cercana a aliados (distancia ${minDistanceToOwnColony}): +${(4 - minDistanceToOwnColony) * 25} puntos`);
+      }
+
+      // 3. Control de áreas estratégicas
+      // Valorar posiciones que dan control de zonas amplias del mapa
+      const row = Math.floor(to / 5);
+      const col = to % 5;
+
+      // Centro del mapa es valioso estratégicamente
+      const distanceToCenter = Math.abs(row - 2) + Math.abs(col - 2);
+      if (distanceToCenter <= 1) {
+        score += 70;
+        console.log(`[IA] Posición central estratégica: +70 puntos`);
+      }
+
+      // Esquinas también pueden ser defensivamente valiosas
+      const isCorner = (row === 0 || row === 4) && (col === 0 || col === 4);
+      if (isCorner) {
+        score += 40;
+        console.log(`[IA] Posición defensiva en esquina: +40 puntos`);
+      }
+    }
+
+    // Analizar la posición para expansión territorial normal
+    // Territorio cerca de colonias enemigas es valioso para presionar
+    if (gamePhase !== "early") {
+      player1.colonies.forEach(enemyColonyIndex => {
+        const distance = calculateDistance(to, enemyColonyIndex);
+        if (distance <= 2) {
+          score += (3 - distance) * 20 * aggressivenessFactor;
+          console.log(`[IA] Territorio cerca de colonia enemiga: +${(3 - distance) * 20 * aggressivenessFactor} puntos`);
+        }
+      });
     }
   }
 
-  // Bonus por moverse a casillas del mismo elemento
-  if (fromCell.element === toCell.element) {
-    score += 30;
+  // MOVIMIENTOS A TERRITORIO ENEMIGO (ATAQUE)
+  if (toCell.owner === 1) {
+    // Valor base de ataque
+    score += 80;
+
+    // Evaluar relación de fuerzas
+    const strengthRatio = fromCell.soldiers / Math.max(1, toCell.soldiers);
+
+    // Bonificar ataques con ventaja clara
+    if (strengthRatio > 1) {
+      score += 100 * (strengthRatio - 1);
+      console.log(`[IA] Ventaja en combate (${strengthRatio.toFixed(1)}x): +${100 * (strengthRatio - 1)} puntos`);
+
+      // Ataque a colonias enemigas (alta prioridad)
+      if (toCell.isColony) {
+        score += 300;
+        console.log(`[IA] Ataque a colonia enemiga: +300 puntos`);
+
+        // Bonus masivo si esta es la última colonia enemiga
+        if (player1.colonies.length === 1) {
+          score += 500;
+          console.log(`[IA] ¡ATAQUE DECISIVO A ÚLTIMA COLONIA ENEMIGA!: +500 puntos`);
+        }
+      }
+
+      // Análisis del impacto estratégico de la conquista
+
+      // 1. Valor del elemento del territorio
+      const energyValue = getElementEnergyValue(toCell.element);
+      score += energyValue * 30;
+
+      // 2. Posición estratégica
+      // Territorio que conecta nuestras colonias
+      let connectsColonies = false;
+      if (player2.colonies.length >= 2) {
+        for (let i = 0; i < player2.colonies.length; i++) {
+          for (let j = i + 1; j < player2.colonies.length; j++) {
+            const colony1 = player2.colonies[i];
+            const colony2 = player2.colonies[j];
+
+            // Verificar si el territorio está en una línea entre dos colonias
+            const distance1 = calculateDistance(to, colony1);
+            const distance2 = calculateDistance(to, colony2);
+            const directDistance = calculateDistance(colony1, colony2);
+
+            if (distance1 + distance2 <= directDistance + 1) {
+              connectsColonies = true;
+              break;
+            }
+          }
+          if (connectsColonies) break;
+        }
+      }
+
+      if (connectsColonies) {
+        score += 80;
+        console.log(`[IA] Territorio que conecta colonias propias: +80 puntos`);
+      }
+
+      // 3. Impacto en la seguridad de nuestras colonias
+      player2.colonies.forEach(ownColonyIndex => {
+        // Atacar territorios enemigos que amenazan nuestras colonias
+        const distanceToColony = calculateDistance(to, ownColonyIndex);
+        if (distanceToColony <= 2) {
+          score += (3 - distanceToColony) * 30;
+          console.log(`[IA] Eliminar amenaza cercana a colonia propia: +${(3 - distanceToColony) * 30} puntos`);
+        }
+      });
+    } else {
+      // Penalizar ataques suicidas
+      score -= 200 * (1 - strengthRatio);
+      console.log(`[IA] Ataque desfavorable (${strengthRatio.toFixed(1)}x): -${200 * (1 - strengthRatio)} puntos`);
+    }
   }
 
-  // Bonus por acercarse a las colonias enemigas
-  gameState.players[1].colonies.forEach((colonyIndex) => {
-    const distance = calculateDistance(to, colonyIndex);
-    score += (10 - distance) * 5;
-  });
+  // MOVIMIENTOS A TERRITORIO PROPIO (REFUERZO)
+  if (toCell.owner === 2) {
+    // Valor base bajo para movimientos a territorio propio
+    score += 20;
 
+    // Reforzar colonias propias es valioso
+    if (toCell.isColony) {
+      // Mayor valor para reforzar colonias bajo amenaza
+      let colonyUnderThreat = false;
+      let threatLevel = 0;
+
+      player1.colonies.forEach(enemyColonyIndex => {
+        const enemyColony = gameState.board[enemyColonyIndex];
+        const distance = calculateDistance(to, enemyColonyIndex);
+
+        if (distance <= 2) {
+          colonyUnderThreat = true;
+          // Calcular nivel de amenaza basado en distancia y fuerza enemiga
+          const threatFactor = (3 - distance) * enemyColony.soldiers;
+          threatLevel = Math.max(threatLevel, threatFactor);
+        }
+      });
+
+      if (colonyUnderThreat) {
+        const defensiveValue = 50 + threatLevel * 10;
+        score += defensiveValue;
+        console.log(`[IA] Reforzar colonia bajo amenaza (nivel ${threatLevel}): +${defensiveValue} puntos`);
+      } else if (toCell.soldiers < 3) {
+        // Reforzar colonias con pocos soldados aunque no estén amenazadas
+        score += 60;
+        console.log(`[IA] Reforzar colonia con defensa débil: +60 puntos`);
+      } else {
+        // Menos valor a reforzar colonias ya fuertes sin amenaza
+        score += 30;
+        console.log(`[IA] Reforzar colonia segura: +30 puntos`);
+      }
+    } else {
+      // Reforzar territorios normales tiene menos valor
+      // Pero puede ser útil para preparar fuerzas para ataques futuros
+
+      // Verificar si está cerca de territorio enemigo para ataque futuro
+      let nearEnemyTerritory = false;
+      gameState.board.forEach((cell, index) => {
+        if (cell.owner === 1 && calculateDistance(to, index) <= 1) {
+          nearEnemyTerritory = true;
+        }
+      });
+
+      if (nearEnemyTerritory) {
+        score += 50;
+        console.log(`[IA] Posicionar fuerzas cerca de territorio enemigo: +50 puntos`);
+      }
+
+      // Consolidar fuerzas en terrenos valiosos
+      const energyValue = getElementEnergyValue(toCell.element);
+      if (energyValue >= 2) {
+        score += 30;
+        console.log(`[IA] Consolidar fuerzas en terreno valioso: +30 puntos`);
+      }
+    }
+
+    // Mover unidades de colonias a territorios adjacentes puede ser útil
+    // para liberar la colonia para crear nuevos soldados
+    if (gameState.board[from].isColony && !toCell.isColony && player2.energy >= SOLDIER_COST) {
+      score += 40;
+      console.log(`[IA] Liberar colonia para crear soldados: +40 puntos`);
+    }
+  }
+
+  // CONSIDERACIONES TÁCTICAS ADICIONALES
+
+  // Ajustar valor según la fase del juego
+  if (gamePhase === "early") {
+    // Fase temprana: favorecer expansión
+    if (toCell.owner === null) {
+      score *= 1.2;
+    }
+  } else if (gamePhase === "late") {
+    // Fase tardía: favorecer ataques directos
+    if (toCell.owner === 1) {
+      score *= 1.3;
+    }
+  }
+
+  // Movimientos que resultan en combinación de ejércitos grandes
+  if (toCell.owner === 2 && fromCell.soldiers + toCell.soldiers >= 5) {
+    score += 30;
+    console.log(`[IA] Crear fuerza de ataque importante: +30 puntos`);
+  }
+
+  // Evitar mover unidades que ya están en posición estratégica
+  if (fromCell.owner === 2 && !gameState.board[from].isColony) {
+    // Verificar si la unidad ya está en posición para atacar
+    let alreadyInAttackPosition = false;
+    gameState.board.forEach((cell, index) => {
+      if (cell.owner === 1 && calculateDistance(from, index) <= 1) {
+        alreadyInAttackPosition = true;
+      }
+    });
+
+    if (alreadyInAttackPosition && toCell.owner !== 1) {
+      score -= 40;
+      console.log(`[IA] Abandonar posición de ataque: -40 puntos`);
+    }
+  }
+
+  // Aplicar factor de agresividad general
+  score *= aggressivenessFactor;
+
+  console.log(`[IA] Evaluación final movimiento ${from} → ${to}: ${score.toFixed(1)} puntos (x${aggressivenessFactor} agresividad)`);
   return score;
 }
 
 // Calcular distancia entre dos casillas
 function calculateDistance(index1, index2) {
-  const row1 = Math.floor(index1 / 7);
-  const col1 = index1 % 7;
-  const row2 = Math.floor(index2 / 7);
-  const col2 = index2 % 7;
+  const row1 = Math.floor(index1 / 5);
+  const col1 = index1 % 5;
+  const row2 = Math.floor(index2 / 5);
+  const col2 = index2 % 5;
 
   return Math.abs(row1 - row2) + Math.abs(col1 - col2);
 }
 
 // Ejecutar movimiento de la IA
 function executeAIMove(move) {
+  console.log(`Ejecutando movimiento IA: ${move.from} -> ${move.to} (Puntuación: ${move.score})`);
+  const fromCell = gameState.board[move.from];
+  const toCell = gameState.board[move.to];
+
+  // Mostrar detalles del movimiento
+  if (toCell.owner === 1) {
+    console.log(`IA ATACA: ${fromCell.soldiers} soldados vs ${toCell.soldiers} soldados enemigos`);
+    if (fromCell.soldiers > toCell.soldiers) {
+      console.log(`Predicción: Victoria probable para la IA`);
+    } else {
+      console.log(`Predicción: Derrota probable para la IA (movimiento desesperado)`);
+    }
+  } else if (toCell.owner === null) {
+    console.log(`IA CONQUISTA: Territorio neutral (${getElementEnergyValue(toCell.element)}⚡)`);
+  } else {
+    console.log(`IA REAGRUPA: Movimiento de refuerzo`);
+  }
+
   // Simular selección visual para la IA
-  const fromCell = document.querySelector(`[data-index="${move.from}"]`);
-  if (fromCell) {
-    fromCell.classList.add('valid-move');
+  const fromCellDOM = document.querySelector(`[data-index="${move.from}"]`);
+  if (fromCellDOM) {
+    fromCellDOM.classList.add('valid-move');
 
     setTimeout(() => {
       // Realizar el movimiento después de un breve delay
