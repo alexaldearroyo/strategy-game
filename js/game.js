@@ -77,6 +77,9 @@ function initGame() {
   createBoard();
   initializeBoardElements();
   placeInitialColonies();
+
+  // No llamar a generateEnergy() aquí para evitar energía extra al inicio
+
   updateUI();
   updateActionButtons();
 
@@ -490,9 +493,13 @@ function highlightCell(index) {
 function endTurn(player) {
   if (player === gameState.currentPlayer) {
     console.log(`Terminando turno del jugador ${player}`);
-    gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+
+    // Primero generar energía para el próximo turno de este jugador
+    // así el jugador recibe la energía para su PRÓXIMO turno, no al inicio del actual
+    const nextPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+    gameState.currentPlayer = nextPlayer;
+
     resetTurnState();
-    generateEnergy();
     updateUI();
     updateActionButtons();
 
