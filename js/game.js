@@ -132,6 +132,9 @@ function placeInitialColonies() {
   const player2Colony = BOARD_SIZE - 7 + Math.floor(Math.random() * 7);
   placeColony(player2Colony, 2);
   console.log('Colonia Jugador 2 colocada en: ' + player2Colony);
+
+  // Recalcular el número total de soldados para cada jugador
+  recalculateTotalSoldiers();
 }
 
 // Colocar una colonia
@@ -255,8 +258,8 @@ function createSoldierInColony(colonyIndex) {
     gameState.board[colonyIndex].soldiers,
   );
 
-  // Actualizar el contador total de soldados del jugador
-  player.soldiers += 1;
+  // Actualizar el contador total de soldados
+  recalculateTotalSoldiers();
 
   // Actualizar explícitamente la celda en el DOM
   updateCellDOM(colonyIndex);
@@ -496,10 +499,16 @@ function moveUnits(from, to) {
     fromCell.soldiers = 0;
   }
 
+  // Recalcular el número total de soldados para cada jugador
+  recalculateTotalSoldiers();
+
   // Actualizar las celdas en el DOM
   updateCellDOM(from);
   updateCellDOM(to);
   updateUI();
+
+  // Verificar si el jugador se quedó sin soldados después del movimiento
+  checkVictory();
 
   console.log(
     `Después del movimiento: Celda ${from} (${fromCell.soldiers} soldados), Celda ${to} (${toCell.soldiers} soldados)`,
@@ -513,15 +522,35 @@ function updateCellAppearance(index) {
 
 // Verificar victoria
 function checkVictory() {
-  const player1Colonies = gameState.players[1].colonies.length;
-  const player2Colonies = gameState.players[2].colonies.length;
+  const player1 = gameState.players[1];
+  const player2 = gameState.players[2];
 
+  const player1Colonies = player1.colonies.length;
+  const player2Colonies = player2.colonies.length;
+
+  // Verificar si un jugador se quedó sin colonias (condición original)
   if (player1Colonies === 0) {
-    alert('¡Jugador 2 ha ganado!');
+    alert('¡Jugador 2 ha ganado! (Jugador 1 se quedó sin colonias)');
     resetGame();
+    return;
   } else if (player2Colonies === 0) {
-    alert('¡Jugador 1 ha ganado!');
+    alert('¡Jugador 1 ha ganado! (Jugador 2 se quedó sin colonias)');
     resetGame();
+    return;
+  }
+
+  // Nueva condición: verificar si un jugador se quedó sin soldados
+  const player1Soldiers = player1.soldiers;
+  const player2Soldiers = player2.soldiers;
+
+  if (player1Soldiers === 0 && player1.energy < SOLDIER_COST) {
+    alert('¡Jugador 2 ha ganado! (Jugador 1 se quedó sin soldados y sin energía suficiente para crear más)');
+    resetGame();
+    return;
+  } else if (player2Soldiers === 0 && player2.energy < SOLDIER_COST) {
+    alert('¡Jugador 1 ha ganado! (Jugador 2 se quedó sin soldados y sin energía suficiente para crear más)');
+    resetGame();
+    return;
   }
 }
 
@@ -557,7 +586,10 @@ function endTurn(player) {
 
     // Ya no generamos energía automáticamente al final del turno
 
-    // Cambiar al siguiente jugador
+    // Verificar victoria antes de cambiar de jugador
+    checkVictory();
+
+    // Si el juego continúa, cambiar al siguiente jugador
     const nextPlayer = player === 1 ? 2 : 1;
     gameState.currentPlayer = nextPlayer;
 
@@ -922,4 +954,20 @@ function clearColonyHighlights() {
   document.querySelectorAll('.colony-indicator').forEach(indicador => {
     indicador.remove();
   });
+}
+
+// Recalcular soldados totales
+function recalculateTotalSoldiers() {
+  // Reiniciar contadores
+  gameState.players[1].soldiers = 0;
+  gameState.players[2].soldiers = 0;
+
+  // Sumar todos los soldados en el tablero para cada jugador
+  gameState.board.forEach(cell => {
+    if (cell.owner && cell.soldiers > 0) {
+      gameState.players[cell.owner].soldiers += cell.soldiers;
+    }
+  });
+
+  console.log(`Recálculo de soldados - Jugador 1: ${gameState.players[1].soldiers}, Jugador 2: ${gameState.players[2].soldiers}`);
 }
