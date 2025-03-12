@@ -384,7 +384,11 @@ function moveUnits(from, to) {
     // Aplicar sistema de puntos según las reglas
     if (fromCell.soldiers > toCell.soldiers) {
       // Victoria
+      const oldOwner = toCell.owner;
       toCell.owner = gameState.currentPlayer;
+
+      // Generar energía por conquistar territorio (enemigo o neutral)
+      generateEnergyFromConquest(to, oldOwner !== null);
 
       // Si es territorio neutral
       if (toCell.soldiers === 0) {
@@ -494,9 +498,10 @@ function endTurn(player) {
   if (player === gameState.currentPlayer) {
     console.log(`Terminando turno del jugador ${player}`);
 
-    // Primero generar energía para el próximo turno de este jugador
-    // así el jugador recibe la energía para su PRÓXIMO turno, no al inicio del actual
-    const nextPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+    // Ya no generamos energía automáticamente al final del turno
+
+    // Cambiar al siguiente jugador
+    const nextPlayer = player === 1 ? 2 : 1;
     gameState.currentPlayer = nextPlayer;
 
     resetTurnState();
@@ -521,21 +526,45 @@ function resetTurnState() {
 }
 
 // Generar energía
-function generateEnergy() {
-  const currentPlayerState = gameState.players[gameState.currentPlayer];
-  currentPlayerState.energy += 3; // Generación base de energía por turno
+function generateEnergy(player) {
+  const playerState = gameState.players[player];
 
-  // Bonus por colonias
-  currentPlayerState.colonies.forEach((colonyIndex) => {
-    const colony = gameState.board[colonyIndex];
-    if (colony.element === ELEMENTS.FIRE || colony.element === ELEMENTS.WATER) {
-      currentPlayerState.energy += 1;
+  // Energía base por turno (más baja que antes para balancear)
+  playerState.energy += 1;
+  console.log(`Jugador ${player} recibe 1 de energía base`);
+
+  // Contador para seguimiento
+  let bonusEnergy = 0;
+
+  // Energía por territorios según su elemento
+  gameState.board.forEach((cell, index) => {
+    if (cell.owner === player) {
+      // Bonus por elemento
+      switch(cell.element) {
+        case ELEMENTS.FIRE:
+          playerState.energy += 1; // El fuego genera más energía
+          bonusEnergy += 1;
+          console.log(`Celda ${index} (Fuego) genera +1 de energía`);
+          break;
+        case ELEMENTS.WATER:
+          if (cell.isColony) {
+            playerState.energy += 1; // El agua genera energía en colonias
+            bonusEnergy += 1;
+            console.log(`Colonia ${index} (Agua) genera +1 de energía`);
+          }
+          break;
+        case ELEMENTS.ETHER:
+          if (cell.soldiers > 2) {
+            playerState.energy += 2; // El éter genera más energía con grandes ejércitos
+            bonusEnergy += 2;
+            console.log(`Celda ${index} (Éter) con ${cell.soldiers} soldados genera +2 de energía`);
+          }
+          break;
+      }
     }
   });
 
-  console.log(
-    `Jugador ${gameState.currentPlayer} ahora tiene ${currentPlayerState.energy} de energía`,
-  );
+  console.log(`Jugador ${player} generó ${bonusEnergy} de energía adicional y ahora tiene ${playerState.energy} en total`);
 }
 
 // Actualizar interfaz
@@ -691,4 +720,87 @@ function selectGameMode(mode) {
   document
     .getElementById('humanMode')
     .classList.toggle('selected', mode === 'human');
+}
+
+// Generar energía por conquista de territorio
+function generateEnergyFromConquest(territoryIndex, isEnemy) {
+  const player = gameState.currentPlayer;
+  const playerState = gameState.players[player];
+  const territory = gameState.board[territoryIndex];
+  let energyGained = 0;
+
+  // Energía base por conquista
+  energyGained += 1;
+
+  // Bonus según el elemento del territorio
+  switch(territory.element) {
+    case ELEMENTS.FIRE:
+      if (isEnemy) {
+        energyGained += 2; // Fuego enemigo da más energía
+        console.log(`¡Territorio enemigo de fuego conquistado! +2 energía adicional`);
+      } else {
+        energyGained += 1; // Fuego neutral da energía
+        console.log(`¡Territorio neutral de fuego ocupado! +1 energía adicional`);
+      }
+      break;
+    case ELEMENTS.WATER:
+      if (territory.isColony) {
+        energyGained += isEnemy ? 3 : 2; // Colonia de agua da más energía
+        console.log(`¡${isEnemy ? 'Colonia enemiga' : 'Territorio neutral'} de agua ${isEnemy ? 'conquistada' : 'ocupado'}! +${isEnemy ? 3 : 2} energía adicional`);
+      } else {
+        energyGained += 1;
+        console.log(`¡Territorio ${isEnemy ? 'enemigo' : 'neutral'} de agua ${isEnemy ? 'conquistado' : 'ocupado'}! +1 energía adicional`);
+      }
+      break;
+    case ELEMENTS.ETHER:
+      energyGained += isEnemy ? 2 : 1; // Éter da energía
+      console.log(`¡Territorio ${isEnemy ? 'enemigo' : 'neutral'} de éter ${isEnemy ? 'conquistado' : 'ocupado'}! +${isEnemy ? 2 : 1} energía adicional`);
+      break;
+    case ELEMENTS.EARTH:
+      if (territory.isColony) {
+        energyGained += isEnemy ? 2 : 1; // Colonias de tierra dan energía
+        console.log(`¡${isEnemy ? 'Colonia enemiga' : 'Territorio neutral'} de tierra ${isEnemy ? 'conquistada' : 'ocupado'}! +${isEnemy ? 2 : 1} energía adicional`);
+      } else if (isEnemy) {
+        energyGained += 1; // Tierra enemiga también da energía
+        console.log(`¡Territorio enemigo de tierra conquistado! +1 energía adicional`);
+      }
+      break;
+    case ELEMENTS.AIR:
+      if (isEnemy) {
+        energyGained += 1; // Aire enemigo da energía
+        console.log(`¡Territorio enemigo de aire conquistado! +1 energía adicional`);
+      }
+      break;
+  }
+
+  // Bonus adicional por conquistar colonia enemiga
+  if (territory.isColony && isEnemy) {
+    energyGained += 2;
+    console.log(`¡Bonus de conquista de colonia enemiga! +2 energía adicional`);
+  }
+
+  // Añadir la energía al jugador
+  playerState.energy += energyGained;
+
+  // Mensaje en consola
+  console.log(`Jugador ${player} gana ${energyGained} de energía por ${isEnemy ? 'conquistar' : 'ocupar'} territorio en ${territoryIndex}`);
+  console.log(`Jugador ${player} ahora tiene ${playerState.energy} energía total`);
+
+  // Animación o efecto visual para mostrar la energía ganada
+  const cellElement = document.querySelector(`[data-index="${territoryIndex}"]`);
+  if (cellElement) {
+    const energyIndicator = document.createElement("div");
+    energyIndicator.className = "energy-gain";
+    energyIndicator.textContent = `+${energyGained}⚡`;
+    cellElement.appendChild(energyIndicator);
+
+    // Eliminar el indicador después de un tiempo
+    setTimeout(() => {
+      if (energyIndicator.parentNode === cellElement) {
+        cellElement.removeChild(energyIndicator);
+      }
+    }, 2000);
+  }
+
+  return energyGained;
 }

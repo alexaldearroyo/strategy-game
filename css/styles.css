@@ -186,3 +186,32 @@ button:hover {
     font-size: 1.2rem;
   }
 }
+
+/* Estilos para el indicador de energía ganada */
+.energy-gain {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: rgba(255, 215, 0, 0.8);
+  color: black;
+  font-weight: bold;
+  padding: 3px 5px;
+  border-radius: 10px;
+  animation: fadeUpAndOut 2s forwards;
+  z-index: 10;
+  font-size: 14px;
+}
+
+@keyframes fadeUpAndOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  80% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
