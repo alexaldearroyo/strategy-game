@@ -301,3 +301,75 @@ button:hover {
     transform: translate(-50%, -50%) scale(1);
   }
 }
+
+/* Estilos para la selección directa de cofradías */
+.selectable-colony {
+  animation: pulseGlow 1.5s infinite;
+  position: relative;
+  z-index: 5;
+  cursor: pointer;
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    transform: scale(1);
+  }
+}
+
+.colony-indicator {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  animation: bounceArrow 1s infinite;
+}
+
+@keyframes bounceArrow {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-5px);
+  }
+}
+
+.game-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 2px solid var(--neon-blue);
+  text-align: center;
+  z-index: 1000;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.game-message button {
+  padding: 5px 10px;
+  background: rgba(255, 50, 50, 0.7);
+  border: none;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+}
+
+.game-message button:hover {
+  background: rgba(255, 100, 100, 0.9);
+}

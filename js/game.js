@@ -36,7 +36,7 @@ let gameState = {
   },
   board: [],
   selectedCell: null,
-  phase: 'SELECT', // SELECT, MOVE, ATTACK
+  phase: 'SELECT', // SELECT, MOVE, ATTACK, COLONY_SELECTION
   actions: {
     movesLeft: 1,
     canCreateSoldier: true,
@@ -216,14 +216,29 @@ function createSoldier() {
     return;
   }
 
-  // Mostrar interfaz de selección de colonia si hay más de una
-  if (player.colonies.length > 1) {
-    showColonySelectionInterface();
+  // Si solo hay una colonia, crear soldado allí automáticamente
+  if (player.colonies.length === 1) {
+    createSoldierInColony(player.colonies[0]);
     return;
   }
 
-  // Si solo hay una colonia, crear soldado allí automáticamente
-  createSoldierInColony(player.colonies[0]);
+  // Si hay más de una colonia, activar el modo de selección de cofradía
+  gameState.phase = 'COLONY_SELECTION';
+
+  // Mostrar mensaje de instrucciones
+  const messageDiv = document.createElement('div');
+  messageDiv.id = 'colonySelectionMessage';
+  messageDiv.className = 'game-message';
+  messageDiv.innerHTML = 'Selecciona una cofradía para crear el soldado <button id="cancelColonySelection">Cancelar</button>';
+  document.querySelector('.game-container').appendChild(messageDiv);
+
+  // Agregar evento al botón de cancelar
+  document.getElementById('cancelColonySelection').addEventListener('click', () => {
+    cancelColonySelection();
+  });
+
+  // Resaltar todas las colonias del jugador
+  highlightPlayerColonies();
 }
 
 // Función para crear soldado en una colonia específica
@@ -258,91 +273,18 @@ function createSoldierInColony(colonyIndex) {
     selectionInterface.remove();
   }
 
+  // Eliminar resaltados de colonias y mensajes si existen
+  clearColonyHighlights();
+  const messageDiv = document.getElementById('colonySelectionMessage');
+  if (messageDiv) {
+    messageDiv.remove();
+  }
+
   // Terminar el turno automáticamente después de un breve retraso
   setTimeout(() => {
     console.log('Terminando turno después de crear soldado');
     endTurn(gameState.currentPlayer);
   }, 100);
-}
-
-// Mostrar interfaz para seleccionar colonia
-function showColonySelectionInterface() {
-  // Eliminar interfaz anterior si existe
-  const oldInterface = document.getElementById('colonySelectionInterface');
-  if (oldInterface) {
-    oldInterface.remove();
-  }
-
-  const player = gameState.players[gameState.currentPlayer];
-
-  // Crear contenedor para la interfaz
-  const selectionInterface = document.createElement('div');
-  selectionInterface.id = 'colonySelectionInterface';
-  selectionInterface.className = 'colony-selection-interface';
-
-  // Título
-  const title = document.createElement('h3');
-  title.textContent = 'Selecciona una cofradía para crear tu soldado:';
-  selectionInterface.appendChild(title);
-
-  // Contenedor para las opciones
-  const optionsContainer = document.createElement('div');
-  optionsContainer.className = 'colony-options';
-
-  // Crear botones para cada colonia
-  player.colonies.forEach(colonyIndex => {
-    const colony = gameState.board[colonyIndex];
-    const colonyBtn = document.createElement('button');
-    colonyBtn.className = 'colony-option';
-    colonyBtn.innerHTML = `
-      <span class="colony-index">Cofradía ${colonyIndex}</span>
-      <span class="colony-element">${getElementSymbol(colony.element)}</span>
-      <span class="colony-soldiers">🛡️ ${colony.soldiers}</span>
-    `;
-
-    // Resaltar la colonia cuando se hace hover sobre el botón
-    colonyBtn.addEventListener('mouseover', () => {
-      highlightColony(colonyIndex);
-    });
-
-    colonyBtn.addEventListener('mouseout', () => {
-      clearHighlights();
-    });
-
-    // Seleccionar la colonia al hacer clic
-    colonyBtn.addEventListener('click', () => {
-      clearHighlights();
-      createSoldierInColony(colonyIndex);
-    });
-
-    optionsContainer.appendChild(colonyBtn);
-  });
-
-  selectionInterface.appendChild(optionsContainer);
-
-  // Botón para cancelar
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = 'Cancelar';
-  cancelBtn.className = 'cancel-button';
-  cancelBtn.addEventListener('click', () => {
-    selectionInterface.remove();
-    clearHighlights();
-  });
-
-  selectionInterface.appendChild(cancelBtn);
-
-  // Añadir la interfaz al contenedor del juego
-  document.querySelector('.game-container').appendChild(selectionInterface);
-}
-
-// Función para resaltar una colonia
-function highlightColony(colonyIndex) {
-  clearHighlights();
-  const cell = document.querySelector(`[data-index="${colonyIndex}"]`);
-  if (cell) {
-    cell.style.border = '3px solid green';
-    cell.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.7)';
-  }
 }
 
 // Función para actualizar directamente el DOM de una celda
@@ -389,6 +331,25 @@ function handleCellClick(index) {
   // No permitir acciones si es el turno de la IA
   if (gameState.currentPlayer === 2 && gameState.players[2].isAI) {
     console.log('Es el turno de la IA, ignorando clic');
+    return;
+  }
+
+  // Si estamos en modo de selección de cofradía
+  if (gameState.phase === 'COLONY_SELECTION') {
+    // Verificar si la celda es una colonia del jugador actual
+    if (cell.owner === gameState.currentPlayer && cell.isColony) {
+      createSoldierInColony(index);
+      clearColonyHighlights();
+      gameState.phase = 'SELECT';
+
+      // Eliminar mensaje de selección
+      const messageDiv = document.getElementById('colonySelectionMessage');
+      if (messageDiv) {
+        messageDiv.remove();
+      }
+    } else {
+      console.log('Selecciona una de tus cofradías para crear el soldado');
+    }
     return;
   }
 
@@ -913,4 +874,52 @@ function generateEnergyFromConquest(territoryIndex, isEnemy) {
   }
 
   return energyGained;
+}
+
+// Función para resaltar todas las colonias del jugador actual
+function highlightPlayerColonies() {
+  const player = gameState.currentPlayer;
+  const playerColonies = gameState.players[player].colonies;
+
+  // Resaltar cada colonia del jugador
+  playerColonies.forEach(colonyIndex => {
+    const cell = document.querySelector(`[data-index="${colonyIndex}"]`);
+    if (cell) {
+      cell.classList.add('selectable-colony');
+
+      // Añadir indicador visual
+      const indicador = document.createElement('div');
+      indicador.className = 'colony-indicator';
+      indicador.innerHTML = '⬇️';
+      cell.appendChild(indicador);
+    }
+  });
+}
+
+// Función para cancelar la selección de cofradía
+function cancelColonySelection() {
+  // Revertir al estado normal
+  gameState.phase = 'SELECT';
+
+  // Eliminar resaltados
+  clearColonyHighlights();
+
+  // Eliminar mensaje
+  const messageDiv = document.getElementById('colonySelectionMessage');
+  if (messageDiv) {
+    messageDiv.remove();
+  }
+}
+
+// Función para limpiar los resaltados de cofradías
+function clearColonyHighlights() {
+  // Quitar clase de todas las celdas resaltadas
+  document.querySelectorAll('.selectable-colony').forEach(cell => {
+    cell.classList.remove('selectable-colony');
+  });
+
+  // Quitar indicadores visuales
+  document.querySelectorAll('.colony-indicator').forEach(indicador => {
+    indicador.remove();
+  });
 }
