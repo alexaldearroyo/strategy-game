@@ -1,22 +1,49 @@
 # Juego de Estrategia Elemental
 
-Este es un juego de estrategia por turnos basado en elementos donde los jugadores compiten por el control del tablero mediante colonias y soldados.
+Un juego de estrategia por turnos basado en elementos, donde los jugadores conquistan territorios, construyen cofradías y utilizan habilidades elementales.
 
-## Características
+## Características principales
 
-- Tablero de juego con 35 casillas
-- Cinco elementos: Fuego, Tierra, Aire, Agua y Éter
-- Sistema de combate basado en puntos
-- Modo para un jugador contra IA
-- Modo para dos jugadores
+- **Sistema de elementos**: Cada celda tiene un elemento (Fuego, Tierra, Aire, Agua, Éter) que otorga habilidades especiales a las unidades.
+- **Visualización mejorada**: Información sobre elementos y habilidades siempre visible durante el juego.
+- **Cofradías (Colonias)**: Puntos estratégicos que permiten crear soldados y expandir tu influencia.
+- **Mejoras de cofradías**: Murallas, cuarteles, torres y altares para potenciar tus territorios.
+- **Sistema de veteranía**: Las unidades que sobreviven al combate se vuelven veteranas, ganando bonificaciones.
+- **Eventos aleatorios**: Eventos dinámicos que pueden cambiar el curso de la partida.
+- **Sistema de combate visual**: Interfaz detallada que muestra el resultado de los combates con indicadores claros de bonificaciones elementales.
+- **Portales dimensionales**: Permite el movimiento rápido entre áreas distantes del mapa.
+- **Registro de eventos**: Seguimiento de todas las acciones importantes durante la partida.
+
+## Elementos y sus habilidades
+
+- **Fuego** 🔥: +1 al poder de ataque
+- **Tierra** 🌍: -1 al daño recibido
+- **Aire** 💨: Permite saltos de 2 casillas
+- **Agua** 💧: Movimiento mejorado (mayor rango)
+- **Éter** ✨: Genera un soldado gratis cada 3 turnos
+
+## Mejoras de cofradías
+
+- **Murallas**: +2 defensa
+- **Cuartel**: -1 coste de soldados
+- **Torre**: Visión mejorada
+- **Altar**: x2 bonificación del elemento
 
 ## Cómo jugar
 
-1. Cada jugador comienza con una colonia y algunos soldados
-2. En tu turno puedes:
-   - Crear soldados gastando energía
-   - Mover soldados para conquistar territorios enemigos
-3. Gana el jugador que capture todas las colonias del oponente
+1. **Turnos alternos**: Los jugadores se turnan para realizar acciones.
+2. **Crear soldados**: Gasta energía para generar soldados en tus cofradías.
+3. **Mover unidades**: Mueve tus unidades para conquistar territorio o atacar al enemigo.
+4. **Crear cofradías**: Establece nuevas cofradías para expandir tu territorio.
+5. **Mejorar cofradías**: Invierte en mejoras para obtener ventajas estratégicas.
+6. **Usar habilidades elementales**: Aprovecha las habilidades únicas de cada terreno.
+
+## Condiciones de victoria
+
+- Capturar todas las cofradías enemigas
+- Eliminar todos los soldados enemigos cuando no tienen energía para crear más
+
+¡Diviértete y desarrolla tu estrategia basada en los elementos!
 
 ## Instalación
 

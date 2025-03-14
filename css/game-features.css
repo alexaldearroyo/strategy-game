@@ -1,0 +1,673 @@
+/* Estilos para las nuevas características del juego */
+
+/* Estilos para el registro de eventos */
+.event-log {
+  width: 300px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 5px;
+  margin-top: 20px;
+  color: white;
+  font-family: 'Arial', sans-serif;
+}
+
+.event-log h3 {
+  text-align: center;
+  margin-top: 0;
+  border-bottom: 1px solid #444;
+  padding-bottom: 5px;
+}
+
+.event-entry {
+  padding: 5px;
+  margin-bottom: 5px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.event-turn {
+  font-weight: bold;
+  color: #ffcc00;
+}
+
+.event-conquest {
+  background-color: rgba(255, 0, 0, 0.3);
+}
+
+.event-ability {
+  background-color: rgba(0, 255, 255, 0.3);
+}
+
+.event-veteran {
+  background-color: rgba(255, 215, 0, 0.3);
+}
+
+.event-upgrade {
+  background-color: rgba(128, 0, 128, 0.3);
+}
+
+.event-event {
+  background-color: rgba(0, 128, 0, 0.3);
+}
+
+.event-colony_capture {
+  background-color: rgba(255, 105, 180, 0.3);
+}
+
+/* Estilos para las notificaciones de eventos */
+.event-notification {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  z-index: 100;
+  max-width: 400px;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+
+.event-notification h3 {
+  color: #ffcc00;
+  margin-top: 0;
+}
+
+.event-notification button {
+  margin-top: 15px;
+  padding: 8px 15px;
+  background-color: #ffcc00;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.event-notification.fade-out {
+  opacity: 0;
+  transition: opacity 1s;
+}
+
+/* Estilos para las mejoras de cofradías */
+.upgrade-interface {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  z-index: 90;
+  width: 350px;
+}
+
+.upgrade-interface h3 {
+  color: #ffcc00;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.upgrade-option {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #333;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.upgrade-option:hover:not(:disabled) {
+  background-color: #555;
+}
+
+.upgrade-option.already-upgraded {
+  opacity: 0.5;
+  background-color: #222;
+}
+
+.upgrade-option.cannot-afford {
+  opacity: 0.5;
+  background-color: #3a2222;
+}
+
+.upgrade-icon {
+  font-size: 1.5em;
+  margin-right: 10px;
+}
+
+.upgrade-name {
+  font-weight: bold;
+  font-size: 1.1em;
+  margin-bottom: 5px;
+}
+
+.upgrade-cost {
+  color: #ffcc00;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.upgrade-description {
+  font-size: 0.9em;
+  color: #ccc;
+}
+
+.cancel-upgrade {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background-color: #555;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.cancel-upgrade:hover {
+  background-color: #777;
+}
+
+/* Estilos para portales dimensionales */
+.portal {
+  position: relative;
+  animation: portal-pulse 1.5s infinite alternate;
+}
+
+.portal-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2em;
+  z-index: 5;
+  animation: rotate 4s linear infinite;
+}
+
+/* Estilos para movimientos especiales */
+.air-jump-move {
+  background-color: rgba(173, 216, 230, 0.4) !important;
+  animation: air-pulse 1s infinite alternate;
+}
+
+/* Estilos para veteranía */
+.veteran-indicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  color: gold;
+  font-size: 0.7em;
+  text-shadow: 0 0 3px black;
+}
+
+/* Elementos de habilidades */
+.element-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.8em;
+  filter: brightness(1.5);
+}
+
+/* Indicadores de mejoras */
+.upgrade-indicator {
+  margin-right: 3px;
+  font-size: 0.8em;
+}
+
+.upgrades-container {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+}
+
+/* Animaciones */
+@keyframes pulse {
+  0% { box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+  100% { box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+}
+
+@keyframes rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes portal-pulse {
+  from { box-shadow: inset 0 0 10px rgb(0, 191, 255); }
+  to { box-shadow: inset 0 0 25px rgb(0, 191, 255); }
+}
+
+@keyframes air-pulse {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+
+/* Panel de elementos y habilidades */
+.elements-panel {
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 20px;
+  color: white;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.elements-panel h3 {
+  width: 100%;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  color: #ffcc00;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 5px;
+}
+
+.element-info {
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 8px;
+  min-width: 120px;
+  flex: 1;
+  max-width: 180px;
+  transition: transform 0.2s;
+}
+
+.element-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.element-icon {
+  font-size: 1.5rem;
+  margin-right: 8px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.element-icon.fire {
+  background-color: rgba(255, 71, 87, 0.3);
+  color: #ff4757;
+}
+
+.element-icon.earth {
+  background-color: rgba(46, 213, 115, 0.3);
+  color: #2ed573;
+}
+
+.element-icon.air {
+  background-color: rgba(112, 161, 255, 0.3);
+  color: #70a1ff;
+}
+
+.element-icon.water {
+  background-color: rgba(0, 206, 201, 0.3);
+  color: #00cec9;
+}
+
+.element-icon.ether {
+  background-color: rgba(255, 234, 167, 0.3);
+  color: #ffeaa7;
+}
+
+.element-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.element-name {
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.element-ability {
+  font-size: 0.8rem;
+  color: #dfe4ea;
+}
+
+/* Mejorar visualización de elementos en celdas */
+.cell {
+  position: relative;
+  overflow: visible !important;
+  padding-top: 25px;
+}
+
+.cell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  opacity: 0.3;
+  border-radius: 6px;
+}
+
+.element-fire::before {
+  background: radial-gradient(circle, rgba(255,71,87,0.3) 0%, rgba(0,0,0,0) 70%);
+}
+
+.element-earth::before {
+  background: radial-gradient(circle, rgba(46,213,115,0.3) 0%, rgba(0,0,0,0) 70%);
+}
+
+.element-air::before {
+  background: radial-gradient(circle, rgba(112,161,255,0.3) 0%, rgba(0,0,0,0) 70%);
+}
+
+.element-water::before {
+  background: radial-gradient(circle, rgba(0,206,201,0.3) 0%, rgba(0,0,0,0) 70%);
+}
+
+.element-ether::before {
+  background: radial-gradient(circle, rgba(255,234,167,0.3) 0%, rgba(0,0,0,0) 70%);
+}
+
+/* Indicadores de elementos más visibles */
+.element-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.9em;
+  filter: brightness(1.5);
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  z-index: 5;
+}
+
+/* Indicador activo cuando se beneficia de la habilidad */
+.element-active .element-indicator {
+  animation: pulse-element 1.5s infinite alternate;
+}
+
+@keyframes pulse-element {
+  from { transform: scale(1); box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); }
+  to { transform: scale(1.15); box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+}
+
+/* Tooltip para información sobre elementos */
+.tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  z-index: 100;
+  pointer-events: none;
+  width: max-content;
+  max-width: 200px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.2s;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.cell:hover .tooltip {
+  opacity: 1;
+}
+
+/* Estilo para panel informativo de mejoras */
+.upgrade-summary {
+  margin-top: 15px;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.upgrade-summary h3 {
+  color: #ffcc00;
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.upgrade-list {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.upgrade-item {
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.upgrade-item .icon {
+  margin-right: 5px;
+  font-size: 1.1rem;
+}
+
+/* Responsive para el panel de elementos */
+@media (max-width: 768px) {
+  .elements-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .element-info {
+    max-width: none;
+  }
+}
+
+/* Estilos para la notificación de combate */
+.combat-notification {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  border-radius: 10px;
+  padding: 20px;
+  z-index: 1000;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.5), 0 0 40px rgba(0, 0, 255, 0.3);
+  min-width: 300px;
+  text-align: center;
+  animation: combat-appear 0.5s ease-out;
+}
+
+.combat-header {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #ff9900;
+  text-shadow: 0 0 10px rgba(255, 153, 0, 0.7);
+}
+
+.combat-sides {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.combat-side {
+  flex: 1;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.combat-side.attacker {
+  background-color: rgba(255, 0, 0, 0.2);
+  border-left: 3px solid #ff0000;
+}
+
+.combat-side.defender {
+  background-color: rgba(0, 0, 255, 0.2);
+  border-right: 3px solid #0000ff;
+}
+
+.combat-vs {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0 15px;
+  color: #ff9900;
+}
+
+.combat-stats {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.combat-bonus {
+  font-weight: bold;
+  color: #ff9900;
+  animation: pulse 1s infinite;
+  margin-top: 5px;
+}
+
+.combat-capture {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff5500;
+  margin-top: 10px;
+  animation: capture-pulse 1.5s infinite;
+  text-shadow: 0 0 10px rgba(255, 85, 0, 0.7);
+}
+
+/* Animaciones para las notificaciones de combate */
+@keyframes combat-appear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes capture-pulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+}
+
+.fade-out {
+  animation: fade-out 1s forwards;
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Mejoras para los indicadores de habilidades elementales activas */
+.cell[data-using-elemental-ability="true"] .element-indicator {
+  animation: ability-active 1s infinite alternate;
+  box-shadow: 0 0 10px gold, 0 0 20px gold;
+}
+
+@keyframes ability-active {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+/* Estilo para el símbolo del elemento siempre visible */
+.element-symbol {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 1.2em;
+  filter: drop-shadow(0 0 2px #000);
+  z-index: 5;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.element-symbol.active {
+  animation: element-active-pulse 1s infinite alternate;
+  box-shadow: 0 0 10px gold;
+}
+
+@keyframes element-active-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 5px gold;
+  }
+  100% {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px gold;
+  }
+}
